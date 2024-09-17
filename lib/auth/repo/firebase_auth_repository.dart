@@ -30,7 +30,6 @@ class FirebaseAuthenticationRepository {
   final FirebaseAuth _firebaseAuth;
 
   Stream<AppUser?> authStateChanges() {
-    _firebaseAuth.authStateChanges();
     return _firebaseAuth.authStateChanges().map(_convertUser);
   }
 

@@ -394,17 +394,17 @@ class SignInPage extends ConsumerStatefulWidget {
     final TextEditingController _emailController = TextEditingController();
     final TextEditingController _passwordController = TextEditingController();
 
-        Future<void> _signIn() async {
-        final auth = ref.read(authControllerProvider.notifier);
+    Future<void> _signIn() async {
+    final auth = ref.read(authControllerProvider.notifier);
 
-            await auth.sigInInUserWithEmailAndPassword(
-            _emailController.text.trim(),
-            _passwordController.text.trim(),
-            );
-        }
+        await auth.sigInInUserWithEmailAndPassword(
+        _emailController.text.trim(),
+        _passwordController.text.trim(),
+        );
+    }
 
-@override
-  Widget build(BuildContext context) {
+    @override
+    Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Sign In Page'),
@@ -475,7 +475,7 @@ class SignInPage extends ConsumerStatefulWidget {
 }
 ```
 
-There are multiple ways to show a loading indicator but I prefer to using the riverpod function ref.listen. This function works similarly to ref.watch the only difference being that ref.watch returns the current value of the provider, while ref.listen provides access to callback with the last and current value. We will use this to show the progress indicator when the state of the auth controller is loading and we will hide it once the state completes to success or error. Additionally, if the state encounters an error, we will display an error snack bar. Let’s add this at the start of the build function.
+There are multiple ways to show a loading indicator but I prefer to using the riverpod function ref.listen. This function works similarly to ref.watch the only difference being that ref.watch returns the current value of the provider, while ref.listen provides access to callback with the last and current value of the provider. We will use this to show the progress indicator when the state of the auth controller is loading and we will hide it once the state completes to success or error. Additionally, if the state encounters an error, we will display an error snack bar. Let’s add this at the start of the build function.
 
 We also have to add a variable to store our context to our state.
 
@@ -484,6 +484,22 @@ We also have to add a variable to store our context to our state.
 
 // loading indicator context inside _SignInPageState
 BuildContext? _progressIndicatorContext;
+
+// add dispose methode to the state of the widget
+@override
+void dispose() {
+    // dispose controllers
+    _emailController.dispose();
+    _passwordController.dispose();
+
+    // close loading dialog when closing page
+    if (_progressIndicatorContext != null &&
+        _progressIndicatorContext!.mounted) {
+    Navigator.of(_progressIndicatorContext!).pop();
+    }
+    super.dispose();
+}
+
 ```
 
 ```

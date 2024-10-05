@@ -17,6 +17,20 @@ class _SignInPageState extends ConsumerState<SignInPage> {
 
   BuildContext? _progressIndicatorContext;
 
+  @override
+  void dispose() {
+    // dispose controllers
+    _emailController.dispose();
+    _passwordController.dispose();
+
+    // close loading dialog when closing page
+    if (_progressIndicatorContext != null &&
+        _progressIndicatorContext!.mounted) {
+      Navigator.of(_progressIndicatorContext!).pop();
+    }
+    super.dispose();
+  }
+
   Future<void> _signIn() async {
     final auth = ref.read(authControllerProvider.notifier);
 

@@ -1,5 +1,6 @@
 # Flutter Firebase Authentication with Riverpod 2.5 and GoRouter
 
+![Alt text](header.png)
 Due to its numerous features and seamless integration, many developers are choosing Firebase for authentication in their Flutter apps. At the same time, Riverpod is gaining popularity as a state-management solution. Naturally, many are curious about how Riverpod can be used to set up Firebase authentication.
 
 In this guide, we’ll explore how to implement Firebase authentication using Riverpod's code generation. Additionally, we’ll cover how to set up an authentication guard with GoRouter, and manage loading states while the user is logging in.
@@ -11,9 +12,15 @@ https://firebase.google.com/docs/auth/flutter/start
 
 <img src="signinVideo.gif" alt="signin" width="220">
 
+
+## Folder Structure
+![Alt text](file_structure.png)
+
+
 ## Getting started
 
-Before we can start implementing our authentication flow, we must first install all our dependencies.
+Before we can start implementing our authentication flow, we must first install all required dependencies.
+
 
 #### Dependencies
 
@@ -31,6 +38,9 @@ flutter pub riverpod_generator --dev
 flutter pub riverpod_lint --dev
 flutter pub build_runner --dev
 ```
+
+
+
 
 After installing all the required packages, we need to initialize Firebase Authentication in our app. We do this by adding the following lines at the start of our main function. Optionally, you might also want to connect your app to the Firebase emulator in debug mode.
 
@@ -122,7 +132,8 @@ final example = ref.watch(exampleProvider);
 
 ## Project Structure
 
-![Alt text](project_structure2.png)
+![Alt text](project_structure.png)
+
 
 ## Authentication
 
@@ -136,7 +147,7 @@ class FirebaseAuthenticationRepository
 AuthenticationRepository(this.firebaseAuth);
 
 final FirebaseAuth _firebaseAuth;
-    // other functions here
+    // .. add other functions here
 }
 ```
 
@@ -163,7 +174,7 @@ As you can see above, we can access the firebase auth SDK with the FirebaseAuth.
 User? get currentUser => _firebaseAuth.currentUser;
 ```
 
-Great, we've accessed the currently signed-in user. The problem is that we receive the current user as the User class from the Firebase SDK. As mentioned earlier, we want our repository to serve as the single point of contact with the Firebase SDK. Therefore, we should map the User class to a local class that we can share within the app, without directly accessing the Firebase SDK outside of the repository. Let’s call this class AppUser:
+Great, we've accessed the currently signed-in user. The problem is that we receive the current user as the User class from the Firebase SDK. As mentioned earlier, we want our repository to serve as the **single point of contact** with the Firebase SDK. Therefore, we should map the User class to a local class that we can share within the app, without directly accessing the Firebase SDK outside of the repository. Let’s call this class AppUser:
 
 ```
 // app_user_model.dart
@@ -261,9 +272,9 @@ Future<void> signOut() async {
 
 ## Handling Loading States
 
-In the last section, we implemented the authentication repository. Now, we want to move on to logging in the user. The only issue is that the authentication repository doesn’t provide information about loading states. Loading states are crucial because they allow us to show error messages and indicate to the user that something is happening in the background. Additionally, they help prevent the user from triggering the sign-in function multiple times before the process is completed.
+In the last section, we implemented the authentication repository. Now, it’s time to move on to logging in the user. However, the current authentication repository doesn’t handle loading states. Managing loading states is essential because it allows us to display error messages, show users that a process is running in the background, and prevent multiple sign-in attempts before the current process completes.
 
-To solve this, we’ll create a notifier provider that manages the loading state and executes the functions of the authentication repository. While this adds some abstraction, it’s well worth the effort.
+To solve this, we’ll create a notifier provider that manages the loading state and calls the functions of the authentication repository. In simple terms, a notifier provider is a tool from Riverpod that helps manage and keep track of changes in a piece of data, like whether the app is loading, successful, or has encountered an error. By using a notifier provider, we can better handle these states during the sign-in process and improve the user experience. While this adds a small extra step, it’s definitely worth it.
 
 But first, let’s add a new class to the loading_state.dart file, which will store the loading and error states:
 
@@ -293,6 +304,8 @@ The only thing left to do, before we can implement the UI, is to implement the n
 
 ```
 // auth_controller.dart
+
+part 'auth_controller.g.dart';
 
 @riverpod
 class AuthController extends _$AuthController {
@@ -341,7 +354,7 @@ class AuthController extends _$AuthController {
 }
 ```
 
-## UI
+## User Interface
 
 Whit the authentication controller completed we can now finally implement the user interface. Let’s start with the home page, as it is simple and requires no additional logic, compared to sign-in and sign-up pages.
 
@@ -475,9 +488,12 @@ class SignInPage extends ConsumerStatefulWidget {
 }
 ```
 
-There are multiple ways to show a loading indicator but I prefer to using the riverpod function ref.listen. This function works similarly to ref.watch the only difference being that ref.watch returns the current value of the provider, while ref.listen provides access to callback with the last and current value of the provider. We will use this to show the progress indicator when the state of the auth controller is loading and we will hide it once the state completes to success or error. Additionally, if the state encounters an error, we will display an error snack bar. Let’s add this at the start of the build function.
+There are several ways to display a loading indicator, but I prefer using the Riverpod function ref.listen. This function is similar to ref.watch, with the key difference being that ref.watch returns the current value of the provider, while ref.listen provides access to a callback that gives you both the previous and current values of the provider.
 
-We also have to add a variable to store our context to our state.
+We’ll use ref.listen to display a progress indicator when the state of the authentication controller is loading, and hide it once the state changes to success or error. If the state encounters an error, we’ll also show an error snackbar. Let’s add this logic at the start of the build function.
+
+Additionally, we need a variable to store the context of the loading indicator, so we'll add _progressIndicatorContext to the widget’s state.
+
 
 ```
 // signin_page.dart
@@ -496,6 +512,8 @@ void dispose() {
     if (_progressIndicatorContext != null &&
         _progressIndicatorContext!.mounted) {
     Navigator.of(_progressIndicatorContext!).pop();
+    _progressIndicatorContext = null;
+
     }
     super.dispose();
 }
@@ -503,7 +521,7 @@ void dispose() {
 ```
 
 ```
-// signin_page.dart
+// signin_page.dart build function
 
 Widget build(BuildContext context) {
     ref.listen(authControllerProvider, (prev, state) async {
@@ -526,6 +544,7 @@ Widget build(BuildContext context) {
         if (_progressIndicatorContext != null &&
             _progressIndicatorContext!.mounted) {
           Navigator.of(_progressIndicatorContext!).pop();
+          _progressIndicatorContext = null;
         }
       });
 
@@ -592,6 +611,8 @@ That done, we can create the Go Router. Since we want to access the authenticati
 ```
 // app_router.dart
 
+part 'app_router.g.dart';
+
 final _key = GlobalKey<NavigatorState>();
 
 @riverpod
@@ -629,13 +650,33 @@ GoRouter router(RouterRef ref) {
 }
 ```
 
-As mentioned above, we need to listen to the current authenticated user. The issue is that the Go Router is incapable of listening to streams directly. So, we must first parse it to a listenable. To do that we create a new class, inside the refresh **listenable.dart** file, which maps the stream to a listenable.
+Before we configure GoRouter, we first need to enable routing for our app. In this case, we’ll use MaterialApp, but we need to change it to MaterialApp.router to integrate routing. The MaterialApp.router requires the routerConfig parameter, which will be set to the value of our routerProvider.
+
+```
+// app.dart
+
+class MyApp extends ConsumerWidget {
+  const MyApp({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final GoRouter router = ref.watch(routerProvider);
+
+    return MaterialApp.router(
+      routerConfig: router,
+      title: 'Riverpod Authenticated Demo',
+    );
+  }
+}
+```
+
+As mentioned above, we need to listen to the current authenticated user. However Go Router is incapable of listening to streams directly. So, we must first convert the stream to a listenable. To do that we create a new class, inside the refresh **listenable.dart** file, which maps the stream to a listenable.
 
 ```
 // refresh_listenable.dart
 
 class GoRouterRefreshStream extends ChangeNotifier {
-GoRouterRefreshStream(Stream<dynamic> stream) {
+    GoRouterRefreshStream(Stream<dynamic> stream) {
         notifyListeners();
         _subscription = stream.asBroadcastStream().listen(
             (dynamic *) => notifyListeners(),
@@ -652,8 +693,8 @@ GoRouterRefreshStream(Stream<dynamic> stream) {
 }
 ```
 
-Source:
-https://stackoverflow.com/a/71532680/13971557
+[Source:
+https://stackoverflow.com/a/71532680/13971557]
 
 We start listening to the authentication changes by setting the refreshListenable parameter of the Go Router.
 
@@ -695,8 +736,9 @@ return GoRouter(
     },
 );
 ```
-
 If we now, try to sign in we will be redirected to the home page.
 
-Checkout the complete source code here 👇 👇
+
+
+Thank you for reading my first article! I hope you found it helpful. If you think there are ways to improve this implementation, feel free to leave a comment. For access to the full source code, check out the link here 👇 👇: 
 https://github.com/JakobProssinger/FirebaseRiverpodGoRouterExample

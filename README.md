@@ -1,16 +1,27 @@
-# firebase_auth_riverpod
+# Flutter Firebase Authentication with Riverpod 2.5 and GoRouter
 
-A Guide for implementing Firebase Authentication with Flutter Riverpod and Go Router
+A Guide for implementing Firebase Authentication with Flutter Riverpod and Go Router.
+This project is the source code of a guide orginaly publish on [medium](https://medium.com/@jakob.prossinger/flutter-firebase-authentication-with-riverpod-2-5-and-gorouter-0311ad23550b).
 
-## Getting Started
+You can also checkout the full guide in the repository: [Here!](/guide/guide.md)
 
-This project is a starting point for a Flutter application.
+## Firebase Emulator
+To start the firebase emulator run:
+```
+firebase emulators:start
+```
 
-A few resources to get you started if this is your first Flutter project:
+## Builder runner
+To start the builder runner run:
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+```
+dart run build_runner watch
+```
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+
+## Run the App
+To start the app run:
+```
+flutter run
+```
+

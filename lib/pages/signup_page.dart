@@ -27,6 +27,7 @@ class _SignInPageState extends ConsumerState<SignUpPage> {
     if (_progressIndicatorContext != null &&
         _progressIndicatorContext!.mounted) {
       Navigator.of(_progressIndicatorContext!).pop();
+      _progressIndicatorContext = null;
     }
     super.dispose();
   }
@@ -60,6 +61,7 @@ class _SignInPageState extends ConsumerState<SignUpPage> {
         if (_progressIndicatorContext != null &&
             _progressIndicatorContext!.mounted) {
           Navigator.of(_progressIndicatorContext!).pop();
+          _progressIndicatorContext = null;
         }
       });
 
